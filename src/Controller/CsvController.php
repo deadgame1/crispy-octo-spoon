@@ -46,11 +46,11 @@ class CsvController extends AbstractController
 
         $stocksAdded=[];
         foreach ($records as $record) {
-            $stockExists=$stockRepo->findOneBy(['name' => $record['stock_name']]);
+            $stockExists=$stockRepo->findOneBy(['name' => strtolower($record['stock_name'])]);
             if(!$stockExists)
             {
                 $stock = new Stock();
-                $stock->setName($record['stock_name']);
+                $stock->setName(strtolower($record['stock_name']));
                 $this->em->persist($stock);
                 $this->em->flush();
             }

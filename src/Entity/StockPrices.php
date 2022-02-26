@@ -24,7 +24,7 @@ class StockPrices
     private $stock;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="datetime")
      */
     private $date;
 

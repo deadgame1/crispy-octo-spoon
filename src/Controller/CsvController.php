@@ -29,7 +29,6 @@ class CsvController extends AbstractController
     public function index(Request $request, StockRepository $stockRepo): Response
     {
         $csv = $request->files->get('csv');
-        //echo'<pre>';var_dump($csv->getRealPath());exit;
         if(!$csv || $csv->getClientMimeType() != 'text/csv')
         {
             return $this->json(['error'=>'Bad CSV'],400);
@@ -59,7 +58,11 @@ class CsvController extends AbstractController
                 $stock = $stockExists;
             }
 
-            $date = \DateTime::createFromFormat('d-m-Y',$record['date']);
+            $date = $this->createDate($record['date']);
+            if(!$date)
+            {
+                continue; //if date could not be generated then skip this record
+            }
             $price = new StockPrices();
             $price->setPrice($record['price'])
                 ->setStock($stock)
@@ -71,6 +74,9 @@ class CsvController extends AbstractController
         return $this->json(['message'=>'ok']);
     }
 
+    /**
+     * Helper fn to delete the existing database records, if user uploads a new csv
+     */
     private function truncateEntities(array $entities)
     {
         $connection = $this->em->getConnection();
@@ -87,5 +93,49 @@ class CsvController extends AbstractController
         // if ($databasePlatform->supportsForeignKeyConstraints()) {
         //     $connection->query('SET FOREIGN_KEY_CHECKS=1');
         // }
+    }
+
+    /**
+     * Function to create a date object from a date string
+     * Tries different date formats in the order of their priority
+     * 
+     */
+    private function createDate(string $date)
+    {
+        $date1Format = \DateTime::createFromFormat('d-m-Y',$date);
+        $date2Format = \DateTime::createFromFormat('d-m-Y H:i:s',$date);
+        $date3Format = \DateTime::createFromFormat('d:m:Y',$date);
+        $date4Format = \DateTime::createFromFormat('d:m:Y H:i:s',$date);
+        $date5Format = \DateTime::createFromFormat('d/m/Y',$date);
+        $date6Format = \DateTime::createFromFormat('d/m/Y H:i:s',$date);
+
+        if($date1Format)
+        {
+            return $date1Format;
+        }
+        else if($date2Format)
+        {
+            return $date2Format;
+        }
+        else if($date3Format)
+        {
+            return $date3Format;
+        }
+        else if($date4Format)
+        {
+            return $date4Format;
+        }
+        else if($date5Format)
+        {
+            return $date5Format;
+        }
+        else if($date6Format)
+        {
+            return $date6Format;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

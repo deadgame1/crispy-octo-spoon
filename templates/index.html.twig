@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <div class="test">
+        <h1>Stocks Application</h1>
+        <br>
+        <div>
+            Upload Stock data csv : <br>
+            <input type="file">
+            <button id="uploadcsv" class="btn btn-primary" type="submit" data-url="{{ app.request.getSchemeAndHttpHost() }}">Submit</button>
+        </div>
+        <hr>
+        <form class="horizontal_form">
+            <div>
+                <label class="form-label" for="stockName">Stock name:</label>
+                <input class="form-control" type="text" id="stockName" name="stockName">
+            </div>
+            <div>
+                <label class="form-label" for="startDate">Start date:</label>
+                <input class="form-control" type="date" id="startDate" name="startDate">
+            </div>
+            <div>
+                <label class="form-label" for="endDate">End date:</label>
+                <input class="form-control" type="date" id="endDate" name="endDate">
+            </div>
+            <button id="getstats" class="btn btn-primary" type="submit">Submit</button>
+        </form>
+        <hr>
+        <div style="margin-top:50px;">
+            <h3>Stocks Data</h3>
+        </div>
+    </div>
+   
+    <script>
+        $("#uploadcsv").click(function(){
+            //alert('turn on APIS');
+            const formData = new FormData();
+            const fileField = document.querySelector('input[type="file"]');
+
+            const baseUrl = fileField.getAttribute('data-url');
+            formData.append('csv', fileField.files[0]);
+
+            fetch('/postCsv', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert('Success: '+JSON.stringify(result))
+                console.log('Success:', JSON.stringify(result));
+            })
+            .catch(error => {
+                alert('error: '+JSON.stringify(result))
+                console.error('Error:', JSON.stringify(result));
+            });
+        });
+        $("#getstats").click(function(){
+            //alert('turn on APIS');
+            const formData = new FormData();
+            const fileField = document.querySelector('input[type="file"]');
+
+            const baseUrl = fileField.getAttribute('data-url');
+            formData.append('csv', fileField.files[0]);
+
+            fetch('/postCsv', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert('Success: '+JSON.stringify(result))
+                console.log('Success:', JSON.stringify(result));
+            })
+            .catch(error => {
+                alert('error: '+JSON.stringify(result))
+                console.error('Error:', JSON.stringify(result));
+            });
+        });
+    </script>
+    <style>
+        .test{
+            padding: 20px 40px;
+        }
+        .horizontal_form{
+            display:flex;
+            margin: 50px 0;
+            align-items: flex-end;
+        }
+        .horizontal_form div{
+            margin-right: 20px; 
+        }
+    </style>
+{% endblock %}

@@ -68,10 +68,20 @@ class StockService
             }
                 
             $sell = $i - 1;
-            $profit=$stockQuantity*($stockData[$sell]['price']-$stockData[$buy]['price']);
-            $totalProfit+=$profit;
+            $netProfit=$stockQuantity*($stockData[$sell]['price']-$stockData[$buy]['price']);
+            $totalProfit+=$netProfit;
 
-            $transactionalData[] = "Buy on {$stockData[$buy]['date']} for Rs {$stockData[$buy]['price']}, Sell on {$stockData[$sell]['date']} for Rs {$stockData[$sell]['price']}, for a profit of Rs {$profit}";
+            //$transactionalData[] = "Buy on {$stockData[$buy]['date']} for Rs {$stockData[$buy]['price']}, Sell on {$stockData[$sell]['date']} for 
+            //Rs {$stockData[$sell]['price']}, for a profit of Rs {$profit}";
+
+            $transactionalData[] = [
+                'buyDate'=>$stockData[$buy]['date'],
+                'buyPrice'=>$stockData[$buy]['price'],
+                'sellDate'=>$stockData[$sell]['date'],
+                'sellPrice'=>$stockData[$sell]['price'],
+                'profit'=>$stockData[$sell]['price']-$stockData[$buy]['price'],
+                'netProfitForThisTxn'=>$netProfit
+            ];
             // echo "Buy on day: $buy <br>";
             // echo "Sell on day: $sell <br>";
             // echo "For profit of $profit <br>";

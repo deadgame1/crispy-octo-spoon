@@ -9,7 +9,7 @@
             <button id="uploadcsv" class="btn btn-primary" type="submit" data-url="{{ app.request.getSchemeAndHttpHost() }}">Submit</button>
         </div>
         <hr>
-        <form class="horizontal_form">
+        <div class="horizontal_form">
             <div>
                 <label class="form-label" for="stockName">Stock name:</label>
                 <input class="form-control" type="text" id="stockName" name="stockName">
@@ -22,71 +22,267 @@
                 <label class="form-label" for="endDate">End date:</label>
                 <input class="form-control" type="date" id="endDate" name="endDate">
             </div>
-            <button id="getstats" class="btn btn-primary" type="submit">Submit</button>
-        </form>
+            <div>
+                <label class="form-label" for="quantity">Quantity Of Stocks:</label>
+                <input class="form-control" type="number" id="quantity" name="quantity" value=200>
+                <small>(Default 200)</small>
+            </div>
+            <button id="getstats" style="margin-top:30px" class="btn btn-primary">Submit</button>
+        </div>
+        <div id="help">
+
+        </div>
         <hr>
         <div style="margin-top:50px;">
-            <h3>Stocks Data</h3>
+            <h3>Statistics</h3>
+            <h5 id="statsFor"></h5>
+            <div id="noStats"></div>
+            
+            <div id="stats">
+                <ul id='txn2'>
+                
+                </ul>
+                <div class="table-responsive-md" style="max-width:1000px;">
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">Transaction Number</th>
+                                <th scope="col">Transaction Type</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Price per stock</th>
+                                <th scope="col">Profit per stock</th>
+                                <th scope="col">Profit <small id="stocksele"></small></th>
+                            </tr>
+                        </thead>
+                        <tbody id='txn'>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+    </div>
+    <div id="loader">
+        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
     </div>
    
     <script>
+        const loader= document.getElementById('loader')
+        const help= document.getElementById('help')
+        const noStats = document.getElementById('noStats')
+        const stats = document.getElementById('stats')
+        let noOfstocks = 200 
+
         $("#uploadcsv").click(function(){
-            //alert('turn on APIS');
+            loader.style.display='flex';
             const formData = new FormData();
             const fileField = document.querySelector('input[type="file"]');
-
-            const baseUrl = fileField.getAttribute('data-url');
             formData.append('csv', fileField.files[0]);
 
             fetch('/postCsv', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(
+                response => {
+                    return response.json();
+                }
+            )
             .then(result => {
+                loader.style.display='none';
                 alert('Success: '+JSON.stringify(result))
                 console.log('Success:', JSON.stringify(result));
             })
             .catch(error => {
-                alert('error: '+JSON.stringify(result))
-                console.error('Error:', JSON.stringify(result));
+                loader.style.display='none';
+                alert('error: '+JSON.stringify(error))
+                console.error('Error:', JSON.stringify(error));
             });
         });
         $("#getstats").click(function(){
-            //alert('turn on APIS');
-            const formData = new FormData();
-            const fileField = document.querySelector('input[type="file"]');
-
-            const baseUrl = fileField.getAttribute('data-url');
-            formData.append('csv', fileField.files[0]);
-
-            fetch('/postCsv', {
-                method: 'POST',
-                body: formData
-            })
+            const sd = document.querySelector('#startDate').value;
+            const ed = document.querySelector('#endDate').value;
+            const stockName = document.querySelector('#stockName').value;
+            const stockQuantity = document.querySelector('#quantity').value;
+            if(!stockName){ //@todo uncomment
+                help.innerHTML = 'Please enter stock name';
+                return;
+            }
+            if(!sd){
+                help.innerHTML = 'Please enter start date';
+                return;
+            }
+            if(!ed){
+                help.innerHTML = 'Please enter end date';
+                return;
+            }
+            let sdo = new Date(sd);
+            let edo = new Date(ed);
+            let today = new Date();
+            if(sdo > edo){
+                help.innerHTML = 'Start date should be less than End date';
+                return;
+            }
+            help.innerHTML = '';
+            //console.log(sdo.toISOString().slice(0,10),edo.toISOString().slice(0,10));return;
+            fetch('/stockAdvice?'+ new URLSearchParams({
+                stock: stockName,//@todo uncomment
+                startDate: sdo.toISOString().slice(0,10),
+                endDate: edo.toISOString().slice(0,10),
+                // stock: 'aapl',//@todo delete hardcoded
+                // startDate: '2000-03-01',
+                // endDate: '2022-03-01',
+                noOfStocks: stockQuantity ? stockQuantity : 200,
+            }))
             .then(response => response.json())
             .then(result => {
-                alert('Success: '+JSON.stringify(result))
-                console.log('Success:', JSON.stringify(result));
+                let x = JSON.stringify(result)
+                let msg = JSON.parse(x);
+                if(msg.error){
+                    stats.style.display='none';
+                    noStats.style.display='block';
+                    noStats.innerHTML = msg.error;
+                    console.log('error')
+                    return;
+                }else{
+                    //success
+                    console.log('success')
+                    stats.style.display="block";
+                    noStats.style.display="none";
+                    document.querySelector('#statsFor').textContent = `for ${msg.name}`
+
+                    let list = document.querySelector('#txn2')
+                    list.innerHTML=''
+                    let totalProfit = document.createElement("li")
+                    totalProfit.textContent = 'Total Profit : '+msg.totalProfit
+                    let deviation = document.createElement("li")
+                    deviation.textContent = 'Standard Deviation : '+msg.standardDeviation
+                    let meanPrice = document.createElement("li")
+                    meanPrice.textContent = 'Mean Price : '+msg.meanPrice
+                    list.appendChild(totalProfit)
+                    list.appendChild(deviation)
+                    list.appendChild(meanPrice)
+
+                    document.querySelector('#stocksele').textContent = `for ${noOfstocks} stocks`
+                    
+                    let table = document.querySelector('#txn')
+                    table.innerHTML=''
+                    let html='';
+                    let i=0;
+                    msg.transactionalData.forEach(element => {
+                        html += `<tr>
+                            <td>#${i++}</td>
+                            <td>Buy</td>
+                            <td>${element.buyDate}</td>
+                            <td>${element.buyPrice}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>`;
+
+                        html += `<tr>
+                            <td>#${i++}</td>
+                            <td>Sell</td>
+                            <td>${element.sellDate}</td>
+                            <td>${element.sellPrice}</td>
+                            <td>${element.profit}</td>
+                            <td>${element.netProfitForThisTxn}</td>
+                        <tr>`;
+                    });
+                    table.innerHTML = html;
+                    table.innerHTML += `<tr><td></td><td></td><td></td><td></td><td></td><td id="totalProfitEle">${msg.totalProfit} <small>(Total Profit)</small></td></tr>`;
+                }
             })
             .catch(error => {
-                alert('error: '+JSON.stringify(result))
-                console.error('Error:', JSON.stringify(result));
+                stats.style.display='none';
+                noStats.style.display='block';
+                console.log('catch')
+                console.log(error)
+                noStats.innerHTML = 'Error';
             });
+            
         });
     </script>
     <style>
+        #help{
+            color: red;
+        }
         .test{
             padding: 20px 40px;
         }
         .horizontal_form{
             display:flex;
             margin: 50px 0;
-            align-items: flex-end;
+            align-items: flex-start;
         }
         .horizontal_form div{
             margin-right: 20px; 
         }
+        #loader{
+            position:fixed;
+            padding:0;
+            margin:0;
+
+            top:0;
+            left:0;
+
+            width: 100%;
+            height: 100%;
+            background:rgba(255,255,255,0.5);
+            opacity: 0.8;    
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #noStats{
+            color:red;
+        }
+
+        .lds-ring {
+            display: block;
+            width: 80px;
+            height: 80px;
+            position: absolute;
+        }
+        .lds-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border: 8px solid #fff;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #000 transparent transparent transparent;
+        }
+        .lds-ring div:nth-child(1) {
+            animation-delay: -0.45s;
+        }
+        .lds-ring div:nth-child(2) {
+            animation-delay: -0.3s;
+        }
+        .lds-ring div:nth-child(3) {
+            animation-delay: -0.15s;
+        }
+        @keyframes lds-ring {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        #txn2{
+            display: flex;
+            align-items: center;
+        }
+        #txn2 li{
+            flex: 0 0 250px;
+        }
+        #totalProfitEle{
+            background: grey;
+            color: black;
+        }
+
     </style>
 {% endblock %}

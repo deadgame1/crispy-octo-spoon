@@ -38,9 +38,9 @@ class StockController extends AbstractController
         {
             return $this->json(['error' => 'Please provide stock name, startDate and endDate']);
         }
-        $startDateObj = \DateTime::createFromFormat('d-m-Y',$startDate);
+        $startDateObj = \DateTime::createFromFormat('Y-m-d',$startDate);
         $startDateObj->setTime(0,0,0);
-        $endDateObj = \DateTime::createFromFormat('d-m-Y',$endDate);
+        $endDateObj = \DateTime::createFromFormat('Y-m-d',$endDate);
         $endDateObj->setTime(23,59,59);
         if($startDateObj > $endDateObj)
         {
@@ -88,6 +88,7 @@ class StockController extends AbstractController
         $sd = $this->stockService->getStockStandardDeviation($prices);
 
         $result = [
+            'name' => $stockExists->getName(),
             'transactionalData' => $stockStats['transactionalData'],
             'totalProfit' => $stockStats['totalProfit'],
             'meanPrice' => $meanStockPrice,

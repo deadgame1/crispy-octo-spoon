@@ -87,13 +87,12 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
         "post-install-cmd": [
-            "@auto-scripts",
-            "yarn build"
+            "@auto-scripts"
         ],
         "post-update-cmd": [
-            "@auto-scripts",
-            "yarn build"
-        ]
+            "@auto-scripts"
+        ],
+        "postinstall": "encore production --progress"
     },
     "conflict": {
         "symfony/symfony": "*"

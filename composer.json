@@ -46,12 +46,12 @@
         "symfony/yaml": "5.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
         "symfony/debug-bundle": "5.4.*",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+        "symfony/web-profiler-bundle": "5.4.*"
     },
     "require-dev": {
         "symfony/maker-bundle": "^1.0",
-        "symfony/stopwatch": "5.4.*",
-        "symfony/web-profiler-bundle": "5.4.*"
+        "symfony/stopwatch": "5.4.*"
     },
     "config": {
         "allow-plugins": {

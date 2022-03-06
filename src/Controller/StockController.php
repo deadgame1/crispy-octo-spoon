@@ -92,7 +92,7 @@ class StockController extends AbstractController
             'transactionalData' => $stockStats['transactionalData'],
             'totalProfit' => $stockStats['totalProfit'],
             'meanPrice' => $meanStockPrice,
-            'standardDeviation' => $sd
+            'standardDeviation' => $sd,
         ];
 
         // echo '<pre>';

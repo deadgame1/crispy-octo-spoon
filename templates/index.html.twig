@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 {% block body %}
     <div class="test">
-        <h1>Stocks Application</h1>
+        <h1 class="text-color-class">Stocks Application</h1>
         <br>
         <div>
             Upload Stock data csv : <br>
@@ -9,10 +9,14 @@
             <button id="uploadcsv" class="btn btn-primary" type="submit" data-url="{{ app.request.getSchemeAndHttpHost() }}">Submit</button>
         </div>
         <hr>
+        <h3 class="text-color-class" style="margin-top: 50px;">Enter details</h3>
         <div class="horizontal_form">
             <div>
-                <label class="form-label" for="stockName">Stock name:</label>
-                <input class="form-control" type="text" id="stockName" name="stockName">
+                <label class="form-label" for="stockName">Stock name:</label><br>
+                <div class="autocomplete" style="width:300px;">
+                    {# <input id="myInput" type="text" name="myCountry" placeholder="Country"> #}
+                    <input class="form-control" type="text" id="stockName" name="stockName">
+                </div>
             </div>
             <div>
                 <label class="form-label" for="startDate">Start date:</label>
@@ -34,7 +38,7 @@
         </div>
         <hr>
         <div style="margin-top:50px;">
-            <h3>Statistics</h3>
+            <h3 class="text-color-class">Statistics</h3>
             <h5 id="statsFor"></h5>
             <div id="noStats"></div>
             
@@ -42,10 +46,10 @@
                 <ul id='txn2'>
                 
                 </ul>
-                <div class="table-responsive-md" style="max-width:1000px;">
+                <div class="table-responsive-md" style="max-width:1000px;display: flex;">
                     <table class="table table-bordered table-sm">
-                        <thead class="thead-dark">
-                            <tr>
+                        <thead >
+                            <tr style="font-size: 15px;">
                                 <th scope="col">Transaction Number</th>
                                 <th scope="col">Transaction Type</th>
                                 <th scope="col">Date</th>
@@ -71,6 +75,7 @@
         const help= document.getElementById('help')
         const noStats = document.getElementById('noStats')
         const stats = document.getElementById('stats')
+        const stockNameEle = document.getElementById('stockName')
         let noOfstocks = 200 
 
         $("#uploadcsv").click(function(){
@@ -89,17 +94,21 @@
                 }
             )
             .then(result => {
+                let x = JSON.stringify(result)
+                let msg = JSON.parse(x);
+                stockNameEle.dataset.stockNames = msg.allStocks
                 loader.style.display='none';
-                alert('Success: '+JSON.stringify(result))
-                console.log('Success:', JSON.stringify(result));
+                alert('Message: '+JSON.stringify(msg.message))
+                console.log('Message:', JSON.stringify(result));
             })
             .catch(error => {
                 loader.style.display='none';
-                alert('error: '+JSON.stringify(error))
+                alert('Error :(')
                 console.error('Error:', JSON.stringify(error));
             });
         });
         $("#getstats").click(function(){
+            loader.style.display='flex';
             const sd = document.querySelector('#startDate').value;
             const ed = document.querySelector('#endDate').value;
             const stockName = document.querySelector('#stockName').value;
@@ -129,13 +138,14 @@
                 stock: stockName,//@todo uncomment
                 startDate: sdo.toISOString().slice(0,10),
                 endDate: edo.toISOString().slice(0,10),
-                // stock: 'aapl',//@todo delete hardcoded
+                stock: 'aapl',//@todo delete hardcoded
                 // startDate: '2000-03-01',
                 // endDate: '2022-03-01',
-                noOfStocks: stockQuantity ? stockQuantity : 200,
+                // noOfStocks: stockQuantity ? stockQuantity : 200,
             }))
             .then(response => response.json())
             .then(result => {
+                loader.style.display='none';
                 let x = JSON.stringify(result)
                 let msg = JSON.parse(x);
                 if(msg.error){
@@ -168,9 +178,10 @@
                     let table = document.querySelector('#txn')
                     table.innerHTML=''
                     let html='';
-                    let i=0;
+                    let i=0;let j=0;
                     msg.transactionalData.forEach(element => {
-                        html += `<tr>
+                        let eleclass = (j % 2 == 1) ? 'tr1' : 'tr2';
+                        html += `<tr class=${eleclass}>
                             <td>#${i++}</td>
                             <td>Buy</td>
                             <td>${element.buyDate}</td>
@@ -179,7 +190,7 @@
                             <td></td>
                         </tr>`;
 
-                        html += `<tr>
+                        html += `<tr class=${eleclass}>
                             <td>#${i++}</td>
                             <td>Sell</td>
                             <td>${element.sellDate}</td>
@@ -187,12 +198,14 @@
                             <td>${element.profit}</td>
                             <td>${element.netProfitForThisTxn}</td>
                         <tr>`;
+                        j++
                     });
                     table.innerHTML = html;
                     table.innerHTML += `<tr><td></td><td></td><td></td><td></td><td></td><td id="totalProfitEle">${msg.totalProfit} <small>(Total Profit)</small></td></tr>`;
                 }
             })
             .catch(error => {
+                loader.style.display='none';
                 stats.style.display='none';
                 noStats.style.display='block';
                 console.log('catch')
@@ -201,6 +214,104 @@
             });
             
         });
+
+
+        function autocomplete(inp, arr) {
+        /*the autocomplete function takes two arguments,
+        the text field element and an array of possible autocompleted values:*/
+        var currentFocus;
+        /*execute a function when someone writes in the text field:*/
+        inp.addEventListener("input", function(e) {
+            var a, b, i, val = this.value;
+            /*close any already open lists of autocompleted values*/
+            closeAllLists();
+            if (!val) { return false;}
+            currentFocus = -1;
+            /*create a DIV element that will contain the items (values):*/
+            a = document.createElement("DIV");
+            a.setAttribute("id", this.id + "autocomplete-list");
+            a.setAttribute("class", "autocomplete-items");
+            /*append the DIV element as a child of the autocomplete container:*/
+            this.parentNode.appendChild(a);
+            /*for each item in the array...*/
+            for (i = 0; i < arr.length; i++) {
+                /*check if the item starts with the same letters as the text field value:*/
+                if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                /*create a DIV element for each matching element:*/
+                b = document.createElement("DIV");
+                /*make the matching letters bold:*/
+                b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+                b.innerHTML += arr[i].substr(val.length);
+                /*insert a input field that will hold the current array item's value:*/
+                b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                /*execute a function when someone clicks on the item value (DIV element):*/
+                    b.addEventListener("click", function(e) {
+                    /*insert the value for the autocomplete text field:*/
+                    inp.value = this.getElementsByTagName("input")[0].value;
+                    /*close the list of autocompleted values,
+                    (or any other open lists of autocompleted values:*/
+                    closeAllLists();
+                });
+                a.appendChild(b);
+                }
+            }
+        });
+        /*execute a function presses a key on the keyboard:*/
+        inp.addEventListener("keydown", function(e) {
+            var x = document.getElementById(this.id + "autocomplete-list");
+            if (x) x = x.getElementsByTagName("div");
+            if (e.keyCode == 40) {
+                /*If the arrow DOWN key is pressed,
+                increase the currentFocus variable:*/
+                currentFocus++;
+                /*and and make the current item more visible:*/
+                addActive(x);
+            } else if (e.keyCode == 38) { //up
+                /*If the arrow UP key is pressed,
+                decrease the currentFocus variable:*/
+                currentFocus--;
+                /*and and make the current item more visible:*/
+                addActive(x);
+            } else if (e.keyCode == 13) {
+                /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                e.preventDefault();
+                if (currentFocus > -1) {
+                /*and simulate a click on the "active" item:*/
+                if (x) x[currentFocus].click();
+                }
+            }
+        });
+        function addActive(x) {
+            /*a function to classify an item as "active":*/
+            if (!x) return false;
+            /*start by removing the "active" class on all items:*/
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            /*add class "autocomplete-active":*/
+            x[currentFocus].classList.add("autocomplete-active");
+        }
+        function removeActive(x) {
+            /*a function to remove the "active" class from all autocomplete items:*/
+            for (var i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+            }
+        }
+        function closeAllLists(elmnt) {
+            /*close all autocomplete lists in the document,
+            except the one passed as an argument:*/
+            var x = document.getElementsByClassName("autocomplete-items");
+            for (var i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != inp) {
+            x[i].parentNode.removeChild(x[i]);
+            }
+        }
+        }
+        /*execute a function when someone clicks in the document:*/
+        document.addEventListener("click", function (e) {
+            closeAllLists(e.target);
+        });
+        }
     </script>
     <style>
         #help{
@@ -211,11 +322,13 @@
         }
         .horizontal_form{
             display:flex;
-            margin: 50px 0;
+            margin: 25px 0;
             align-items: flex-start;
+            flex-wrap: wrap;
         }
         .horizontal_form div{
             margin-right: 20px; 
+            margin-bottom: 15px;
         }
         #loader{
             position:fixed;
@@ -275,14 +388,78 @@
         #txn2{
             display: flex;
             align-items: center;
+            flex-wrap:wrap;
         }
         #txn2 li{
             flex: 0 0 250px;
         }
         #totalProfitEle{
-            background: grey;
+            background: #80808078;
             color: black;
         }
+        .text-color-class{
+            color: #003285;
+        }
+        #statsFor{
+            margin-left: 30px;
+        }
+        .tr1{
+            background:#6ead6e6b;
+        }
 
+        .tr2{
+            background:#b8b8ff87;
+        }
+        table{
+            overflow-y: auto;
+            white-space: nowrap;
+            flex: 1 1 auto;
+        }
+
+        .autocomplete {
+            /*the container must be positioned relative:*/
+            position: relative;
+            display: inline-block;
+        }
+        /* input {
+            border: 1px solid transparent;
+            background-color: #f1f1f1;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input[type=text] {
+            background-color: #f1f1f1;
+            width: 100%;
+        }
+        input[type=submit] {
+            background-color: DodgerBlue;
+            color: #fff;
+        } */
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+        .autocomplete-items div:hover {
+            /*when hovering an item:*/
+            background-color: #e9e9e9;
+        }
+        .autocomplete-active {
+            /*when navigating through the items using the arrow keys:*/
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
     </style>
 {% endblock %}

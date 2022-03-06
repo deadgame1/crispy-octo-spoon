@@ -31,7 +31,7 @@ class CsvController extends AbstractController
         $csv = $request->files->get('csv');
         if(!$csv || $csv->getClientMimeType() != 'text/csv')
         {
-            return $this->json(['error'=>'Bad CSV'],400);
+            return $this->json(['message'=>'Bad CSV'],400);
         }
         
         $csv = Reader::createFromPath($csv->getRealPath(), 'r');
@@ -50,6 +50,7 @@ class CsvController extends AbstractController
             {
                 $stock = new Stock();
                 $stock->setName(strtolower($record['stock_name']));
+                $stocksAdded[] = $record['stock_name'];
                 $this->em->persist($stock);
                 $this->em->flush();
             }
@@ -71,7 +72,7 @@ class CsvController extends AbstractController
         }
         $this->em->flush();
 
-        return $this->json(['message'=>'ok']);
+        return $this->json(['message'=>'ok','allStocks' => $stocksAdded]);
     }
 
     /**

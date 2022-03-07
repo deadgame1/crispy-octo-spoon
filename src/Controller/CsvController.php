@@ -50,7 +50,7 @@ class CsvController extends AbstractController
             {
                 $stock = new Stock();
                 $stock->setName(strtolower($record['stock_name']));
-                $stocksAdded[] = $record['stock_name'];
+                $stocksAdded[] = strtolower($record['stock_name']);
                 $this->em->persist($stock);
                 $this->em->flush();
             }

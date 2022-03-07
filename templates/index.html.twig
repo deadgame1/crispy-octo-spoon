@@ -3,30 +3,35 @@
     <div class="test">
         <h1 class="text-color-class">Stocks Application</h1>
         <br>
-        <div>
-            Upload Stock data csv : <br>
-            <input type="file">
+        <div style="margin: 20px 0 35px 0;" class="">
+            <img src="{{ asset('images/file-upload.png') }}" alt="icon!" style="width:40px;"/>
+            <span style="font-weight: 500;">Upload Stock data csv :</span> &nbsp; &nbsp; &nbsp;
+            <input type="file" class="form-control-sm" style="width:235px;">
             <button id="uploadcsv" class="btn btn-primary" type="submit" data-url="{{ app.request.getSchemeAndHttpHost() }}">Submit</button>
         </div>
         <hr>
-        <h3 class="text-color-class" style="margin-top: 50px;">Enter details</h3>
+        <div class="emdiv">
+            <img src="{{ asset('images/enter.png') }}" alt="icon!" style="width: 31px;margin-left: 5px;margin-right: 6px;"/>
+            Enter details
+        </div>
         <div class="horizontal_form">
-            <div>
-                <label class="form-label" for="stockName">Stock name:</label><br>
-                <div class="autocomplete" style="width:300px;">
-                    {# <input id="myInput" type="text" name="myCountry" placeholder="Country"> #}
-                    <input class="form-control" type="text" id="stockName" name="stockName">
-                </div>
+            <div class="hfi">
+                <form autocomplete="off">
+                    <label class="form-label" for="stockName">Stock name:</label><br>
+                    <div class="autocomplete">
+                        <input class="form-control" type="text" id="stockName" data-stocknames={{ names }} name="stockName">
+                    </div>
+                </form>
             </div>
-            <div>
+            <div class="hfi">
                 <label class="form-label" for="startDate">Start date:</label>
                 <input class="form-control" type="date" id="startDate" name="startDate">
             </div>
-            <div>
+            <div class="hfi">
                 <label class="form-label" for="endDate">End date:</label>
                 <input class="form-control" type="date" id="endDate" name="endDate">
             </div>
-            <div>
+            <div class="hfi">
                 <label class="form-label" for="quantity">Quantity Of Stocks:</label>
                 <input class="form-control" type="number" id="quantity" name="quantity" value=200>
                 <small>(Default 200)</small>
@@ -37,30 +42,35 @@
 
         </div>
         <hr>
-        <div style="margin-top:50px;">
-            <h3 class="text-color-class">Statistics</h3>
-            <h5 id="statsFor"></h5>
+        <div style="margin-top:50px; max-width:1200px;">
+            <h3 class="text-color-class">
+                <img src="{{ asset('images/analytics.png') }}" alt="icon!" style="width: 31px;margin-left: 5px;margin-right: 6px;"/>
+                Statistics
+            </h3>
+            <div id="statsFor"></div>
             <div id="noStats"></div>
             
             <div id="stats">
-                <ul id='txn2'>
+                <div id='txn2'>
                 
-                </ul>
-                <div class="table-responsive-md" style="max-width:1000px;display: flex;">
-                    <table class="table table-bordered table-sm">
+                </div>
+                <div class="table-responsive-md" id="stats-sec" style="" data-toggletable=1>
+                    <table class="table table-bordered table-sm center">
                         <thead >
-                            <tr style="font-size: 15px;">
-                                <th scope="col">Transaction Number</th>
-                                <th scope="col">Transaction Type</th>
-                                <th scope="col">Date</th>
-                                <th scope="col">Price per stock</th>
-                                <th scope="col">Profit per stock</th>
-                                <th scope="col">Profit <small id="stocksele"></small></th>
+                            <tr style="font-size:15px;">
+                                <th scope="col" rowspan="2">Transaction Number</th>
+                                <th scope="col" colspan="2">Buy</th>
+                                <th scope="col" colspan="2">Sell</th>
+                                <th scope="col" rowspan="2">Profit per stock</th>
+                                <th scope="col" rowspan="2">Profit <small id="stocksele"></small></th>
+                            </tr>
+                            <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Price</th>
                             </tr>
                         </thead>
-                        <tbody id='txn'>
-
-                        </tbody>
                     </table>
                 </div>
             </div>
@@ -70,250 +80,13 @@
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
     </div>
    
-    <script>
-        const loader= document.getElementById('loader')
-        const help= document.getElementById('help')
-        const noStats = document.getElementById('noStats')
-        const stats = document.getElementById('stats')
-        const stockNameEle = document.getElementById('stockName')
-        let noOfstocks = 200 
-
-        $("#uploadcsv").click(function(){
-            loader.style.display='flex';
-            const formData = new FormData();
-            const fileField = document.querySelector('input[type="file"]');
-            formData.append('csv', fileField.files[0]);
-
-            fetch('/postCsv', {
-                method: 'POST',
-                body: formData
-            })
-            .then(
-                response => {
-                    return response.json();
-                }
-            )
-            .then(result => {
-                let x = JSON.stringify(result)
-                let msg = JSON.parse(x);
-                stockNameEle.dataset.stockNames = msg.allStocks
-                loader.style.display='none';
-                alert('Message: '+JSON.stringify(msg.message))
-                console.log('Message:', JSON.stringify(result));
-            })
-            .catch(error => {
-                loader.style.display='none';
-                alert('Error :(')
-                console.error('Error:', JSON.stringify(error));
-            });
-        });
-        $("#getstats").click(function(){
-            loader.style.display='flex';
-            const sd = document.querySelector('#startDate').value;
-            const ed = document.querySelector('#endDate').value;
-            const stockName = document.querySelector('#stockName').value;
-            const stockQuantity = document.querySelector('#quantity').value;
-            if(!stockName){ //@todo uncomment
-                help.innerHTML = 'Please enter stock name';
-                return;
-            }
-            if(!sd){
-                help.innerHTML = 'Please enter start date';
-                return;
-            }
-            if(!ed){
-                help.innerHTML = 'Please enter end date';
-                return;
-            }
-            let sdo = new Date(sd);
-            let edo = new Date(ed);
-            let today = new Date();
-            if(sdo > edo){
-                help.innerHTML = 'Start date should be less than End date';
-                return;
-            }
-            help.innerHTML = '';
-            //console.log(sdo.toISOString().slice(0,10),edo.toISOString().slice(0,10));return;
-            fetch('/stockAdvice?'+ new URLSearchParams({
-                stock: stockName,//@todo uncomment
-                startDate: sdo.toISOString().slice(0,10),
-                endDate: edo.toISOString().slice(0,10),
-                stock: 'aapl',//@todo delete hardcoded
-                // startDate: '2000-03-01',
-                // endDate: '2022-03-01',
-                // noOfStocks: stockQuantity ? stockQuantity : 200,
-            }))
-            .then(response => response.json())
-            .then(result => {
-                loader.style.display='none';
-                let x = JSON.stringify(result)
-                let msg = JSON.parse(x);
-                if(msg.error){
-                    stats.style.display='none';
-                    noStats.style.display='block';
-                    noStats.innerHTML = msg.error;
-                    console.log('error')
-                    return;
-                }else{
-                    //success
-                    console.log('success')
-                    stats.style.display="block";
-                    noStats.style.display="none";
-                    document.querySelector('#statsFor').textContent = `for ${msg.name}`
-
-                    let list = document.querySelector('#txn2')
-                    list.innerHTML=''
-                    let totalProfit = document.createElement("li")
-                    totalProfit.textContent = 'Total Profit : '+msg.totalProfit
-                    let deviation = document.createElement("li")
-                    deviation.textContent = 'Standard Deviation : '+msg.standardDeviation
-                    let meanPrice = document.createElement("li")
-                    meanPrice.textContent = 'Mean Price : '+msg.meanPrice
-                    list.appendChild(totalProfit)
-                    list.appendChild(deviation)
-                    list.appendChild(meanPrice)
-
-                    document.querySelector('#stocksele').textContent = `for ${noOfstocks} stocks`
-                    
-                    let table = document.querySelector('#txn')
-                    table.innerHTML=''
-                    let html='';
-                    let i=0;let j=0;
-                    msg.transactionalData.forEach(element => {
-                        let eleclass = (j % 2 == 1) ? 'tr1' : 'tr2';
-                        html += `<tr class=${eleclass}>
-                            <td>#${i++}</td>
-                            <td>Buy</td>
-                            <td>${element.buyDate}</td>
-                            <td>${element.buyPrice}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>`;
-
-                        html += `<tr class=${eleclass}>
-                            <td>#${i++}</td>
-                            <td>Sell</td>
-                            <td>${element.sellDate}</td>
-                            <td>${element.sellPrice}</td>
-                            <td>${element.profit}</td>
-                            <td>${element.netProfitForThisTxn}</td>
-                        <tr>`;
-                        j++
-                    });
-                    table.innerHTML = html;
-                    table.innerHTML += `<tr><td></td><td></td><td></td><td></td><td></td><td id="totalProfitEle">${msg.totalProfit} <small>(Total Profit)</small></td></tr>`;
-                }
-            })
-            .catch(error => {
-                loader.style.display='none';
-                stats.style.display='none';
-                noStats.style.display='block';
-                console.log('catch')
-                console.log(error)
-                noStats.innerHTML = 'Error';
-            });
-            
-        });
-
-
-        function autocomplete(inp, arr) {
-        /*the autocomplete function takes two arguments,
-        the text field element and an array of possible autocompleted values:*/
-        var currentFocus;
-        /*execute a function when someone writes in the text field:*/
-        inp.addEventListener("input", function(e) {
-            var a, b, i, val = this.value;
-            /*close any already open lists of autocompleted values*/
-            closeAllLists();
-            if (!val) { return false;}
-            currentFocus = -1;
-            /*create a DIV element that will contain the items (values):*/
-            a = document.createElement("DIV");
-            a.setAttribute("id", this.id + "autocomplete-list");
-            a.setAttribute("class", "autocomplete-items");
-            /*append the DIV element as a child of the autocomplete container:*/
-            this.parentNode.appendChild(a);
-            /*for each item in the array...*/
-            for (i = 0; i < arr.length; i++) {
-                /*check if the item starts with the same letters as the text field value:*/
-                if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-                /*create a DIV element for each matching element:*/
-                b = document.createElement("DIV");
-                /*make the matching letters bold:*/
-                b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-                b.innerHTML += arr[i].substr(val.length);
-                /*insert a input field that will hold the current array item's value:*/
-                b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                /*execute a function when someone clicks on the item value (DIV element):*/
-                    b.addEventListener("click", function(e) {
-                    /*insert the value for the autocomplete text field:*/
-                    inp.value = this.getElementsByTagName("input")[0].value;
-                    /*close the list of autocompleted values,
-                    (or any other open lists of autocompleted values:*/
-                    closeAllLists();
-                });
-                a.appendChild(b);
-                }
-            }
-        });
-        /*execute a function presses a key on the keyboard:*/
-        inp.addEventListener("keydown", function(e) {
-            var x = document.getElementById(this.id + "autocomplete-list");
-            if (x) x = x.getElementsByTagName("div");
-            if (e.keyCode == 40) {
-                /*If the arrow DOWN key is pressed,
-                increase the currentFocus variable:*/
-                currentFocus++;
-                /*and and make the current item more visible:*/
-                addActive(x);
-            } else if (e.keyCode == 38) { //up
-                /*If the arrow UP key is pressed,
-                decrease the currentFocus variable:*/
-                currentFocus--;
-                /*and and make the current item more visible:*/
-                addActive(x);
-            } else if (e.keyCode == 13) {
-                /*If the ENTER key is pressed, prevent the form from being submitted,*/
-                e.preventDefault();
-                if (currentFocus > -1) {
-                /*and simulate a click on the "active" item:*/
-                if (x) x[currentFocus].click();
-                }
-            }
-        });
-        function addActive(x) {
-            /*a function to classify an item as "active":*/
-            if (!x) return false;
-            /*start by removing the "active" class on all items:*/
-            removeActive(x);
-            if (currentFocus >= x.length) currentFocus = 0;
-            if (currentFocus < 0) currentFocus = (x.length - 1);
-            /*add class "autocomplete-active":*/
-            x[currentFocus].classList.add("autocomplete-active");
-        }
-        function removeActive(x) {
-            /*a function to remove the "active" class from all autocomplete items:*/
-            for (var i = 0; i < x.length; i++) {
-            x[i].classList.remove("autocomplete-active");
-            }
-        }
-        function closeAllLists(elmnt) {
-            /*close all autocomplete lists in the document,
-            except the one passed as an argument:*/
-            var x = document.getElementsByClassName("autocomplete-items");
-            for (var i = 0; i < x.length; i++) {
-            if (elmnt != x[i] && elmnt != inp) {
-            x[i].parentNode.removeChild(x[i]);
-            }
-        }
-        }
-        /*execute a function when someone clicks in the document:*/
-        document.addEventListener("click", function (e) {
-            closeAllLists(e.target);
-        });
-        }
-    </script>
+    <script src="{{ asset('bundles/homepage.js') }}"></script>
     <style>
+        .emdiv{
+            font-size: 16px; 
+            margin-top:50px;
+            font-weight: 500;
+        }
         #help{
             color: red;
         }
@@ -322,11 +95,11 @@
         }
         .horizontal_form{
             display:flex;
-            margin: 25px 0;
+            margin: 25px 0 10px 0;
             align-items: flex-start;
             flex-wrap: wrap;
         }
-        .horizontal_form div{
+        .hfi{
             margin-right: 20px; 
             margin-bottom: 15px;
         }
@@ -345,6 +118,7 @@
             display: none;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
         }
         #noStats{
             color:red;
@@ -389,9 +163,7 @@
             display: flex;
             align-items: center;
             flex-wrap:wrap;
-        }
-        #txn2 li{
-            flex: 0 0 250px;
+            margin-bottom: 10px;
         }
         #totalProfitEle{
             background: #80808078;
@@ -401,7 +173,9 @@
             color: #003285;
         }
         #statsFor{
-            margin-left: 30px;
+            margin: 30px 0 20px 0;
+            font-size: 16px;
+            font-weight: 500;
         }
         .tr1{
             background:#6ead6e6b;
@@ -414,34 +188,18 @@
             overflow-y: auto;
             white-space: nowrap;
             flex: 1 1 auto;
+            border-color:#afafaf !important;
         }
-
         .autocomplete {
-            /*the container must be positioned relative:*/
             position: relative;
             display: inline-block;
         }
-        /* input {
-            border: 1px solid transparent;
-            background-color: #f1f1f1;
-            padding: 10px;
-            font-size: 16px;
-        }
-        input[type=text] {
-            background-color: #f1f1f1;
-            width: 100%;
-        }
-        input[type=submit] {
-            background-color: DodgerBlue;
-            color: #fff;
-        } */
         .autocomplete-items {
             position: absolute;
             border: 1px solid #d4d4d4;
             border-bottom: none;
             border-top: none;
             z-index: 99;
-            /*position the autocomplete items to be the same width as the container:*/
             top: 100%;
             left: 0;
             right: 0;
@@ -453,13 +211,87 @@
             border-bottom: 1px solid #d4d4d4;
         }
         .autocomplete-items div:hover {
-            /*when hovering an item:*/
             background-color: #e9e9e9;
         }
         .autocomplete-active {
-            /*when navigating through the items using the arrow keys:*/
             background-color: DodgerBlue !important;
             color: #ffffff;
         }
+        body{
+                background: #8080802e;
+        }
+        #stats-sec{
+            max-width:1200px;
+            display: flex;
+        }
+        .center{
+            text-align: center;
+        }
+        .table2{
+            display:none;
+        }
+        /* The switch - the box around the slider */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 55px;
+            height: 28px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #6ead6e6b; 
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color:#b8b8ff87;/*#2196F3 */
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 {% endblock %}
+

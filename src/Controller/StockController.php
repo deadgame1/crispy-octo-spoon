@@ -95,34 +95,19 @@ class StockController extends AbstractController
             'standardDeviation' => $sd,
         ];
 
-        // echo '<pre>';
-        // var_dump($prices);
-        // echo '<br>';
-        // var_dump($result);exit
-
         return $this->json($result);
     }
 
     /**
      * @Route("/homepage", name="stock_home", methods="get")
      */
-    public function homepage()
+    public function homepage(StockRepository $stockRepo)
     {
-        return $this->render('index.html.twig');
+        $allStocks = $stockRepo->findAll();
+        $data = [];
+        foreach($allStocks as $key=>$val){
+            $data[] = $val->getName();
+        }
+        return $this->render('index.html.twig',['names'=>implode(",",$data)]);
     }
-
-    //To Do
-    //front end - most probably in twig and simple javascript
-    //nice to have features
-    //deployment
-    //unit tests
-    //
-
-
-    //Done
-    //1. symfony setup
-    //2, git repo setup
-    //3. DB schema
-    //4. CSV upload
-    //5. Almost all requirements related to stock stats [stock controller APIs and stock service]
 }

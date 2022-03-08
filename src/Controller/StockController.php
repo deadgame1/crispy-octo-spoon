@@ -93,6 +93,7 @@ class StockController extends AbstractController
             'totalProfit' => $stockStats['totalProfit'],
             'meanPrice' => $meanStockPrice,
             'standardDeviation' => $sd,
+            'quantity' => $noOfstocks,
         ];
 
         return $this->json($result);

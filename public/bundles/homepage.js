@@ -3,7 +3,7 @@ const help= document.getElementById('help')
 const noStats = document.getElementById('noStats')
 const stats = document.getElementById('stats')
 const stockNameEle = document.getElementById('stockName')
-let noOfstocks = 200
+
 $("#uploadcsv").click(function(){
     loader.style.display='flex';
     const formData = new FormData();
@@ -168,7 +168,7 @@ function drawTableUi(msg)
                 <th scope="col" colspan="2">Buy</th>
                 <th scope="col" colspan="2">Sell</th>
                 <th scope="col" rowspan="2">Profit per stock</th>
-                <th scope="col" rowspan="2">Profit <small id="stocksele">for ${noOfstocks} stocks</small></th>
+                <th scope="col" rowspan="2">Profit <small id="stocksele">for ${msg.quantity} stocks</small></th>
             </tr>
             <tr>
             <th scope="col">Date</th>
@@ -205,7 +205,7 @@ function drawTableUi(msg)
                 <th scope="col">Date</th>
                 <th scope="col">Price per stock</th>
                 <th scope="col">Profit per stock</th>
-                <th scope="col">Profit <small id="stocksele">for ${noOfstocks} stocks</small></th>
+                <th scope="col">Profit <small id="stocksele">for ${msg.quantity} stocks</small></th>
             </tr>
         </thead><tbody id='txn'>`;
 
